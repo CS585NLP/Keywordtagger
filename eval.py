@@ -7,7 +7,7 @@ def arrange(x):
 	return y;
 
 def precision_recall(gold,pred):
-	n=0.0,d1=0.0,d2=0.0;
+	n,d1,d2=[0.0]*3;
 	for x,y in zip(gold,pred):
 		n+=len(x.intersection(y))
 		d1+= len(y);
@@ -22,7 +22,7 @@ def Fscore(gold,predicted):
 	predicted = arrange(predicted);
 	p,r = precision_recall(gold,predicted);
 	
-	return (p*r)/p+r 
+	return (2*p*r)/p+r 
 
 
 

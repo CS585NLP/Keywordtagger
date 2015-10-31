@@ -4,77 +4,61 @@
 
 from __future__ import division
 
-import math
-import os
-
-from collections import defaultdict
-from math import *
-from random import shuffle
-
+import feature
+import load
+import eval
 from sklearn.naive_bayes import MultinomialNB
+import numpy as np
 
-import Feature
+print 'Begin Loading samples...'
+#load samples
+train_samples,train_target = load.load_dataset(fname=load.filename['TRAIN'],numdocs=10000);
+dev_samples,dev_target = load.load_dataset(fname=load.filename['DEV'],numdocs=10);
 
-
-# Global class labels.
-POS_LABEL = 'pos'
-NEG_LABEL = 'neg'
-
-# Path to dataset
-PATH_TO_DATA = r"/home/gowthamrang/Desktop/IntrotoNLP/project/data"
-
-TRAIN_DATA = os.path.join(PATH_TO_DATA, "train")
-TEST_DATA = os.path.join(PATH_TO_DATA, "test")
-
-#Modify this to include entire dataset
-TRAIN_FILE_NAME = "train_reduced.csv";
-DEV_FILE_NAME = "dev_reduced.csv";
-
-#'duck testing'
-assert(TRAIN_FILE_NAME[-4:].lower() == '.csv' and DEV_FILE_NAME[-4:].lower()=='.csv')
-
-#data can be weights or features but they are a list
-def load(data,fname='BOWmodel_train'):
-	assert(type(data) == list and type(fname) == str);
-
-
-
-_examples = load(Train=True,num_docs = 2000);
-dev_set = load(num_docs=500);
-
-#last is tags in examples
-permute(_examples);
-
-for each in _examples:
-  examples.append(each[:-1])
-  target.append(each[-1]);
-
-bow = Feature.feature("bow",examples,dev_set);
-
-example_features = bow.get_incremental_features(examples);
-
-classes = set(target);
+print 'Tags for the last train example',train_target[-1]
+#print train_target
+#print train_samples[0]
+#Classifier Model
+classes=[];
+for each in train_target: classes.extend(x for x in each);
+classes = set(classes);
 classifyers =[];
+print 'Total number of classes for this model ', len(classes)
 
+class_example_count = [];
 for each in classes:
-  Y = np.array([1 if x == each else 0 for x in target ]);
-  clf = GaussianNB();
+  Y = np.array([1 if each in x  else 0 for x in train_target ]); 
+  class_example_count.append(sum(Y));
+print 'examples seen for each class during training ' ,class_example_count
+#assert(False)
+
+#Feature Model
+bow = feature.feature("bow",train_samples);
+X = bow.get_incremental_features(train_samples);
+
+
+
+#Classifier Model : Train
+for each in classes:
+  Y = np.array([1 if each in x  else 0 for x in train_target ]); 
+  assert(X.shape[0] ==  len(train_samples))
+  assert(Y.shape[0] == len(train_samples))
+  clf = MultinomialNB();# onlu MultinomialNB takes sparse matrix 
   clf.fit(X,Y);
   classifyers.append(clf);
 
-pred = [];
+#Classifier Model: Test
+X_dev = bow.get_incremental_features(dev_samples,Train=False);
+pred = ['']*len(dev_samples)
+
 for i,keyword in enumerate(classes):
-  pred = classifyers[i].predict(Dev);
-  pred.append([]);
-  for exampleno,each in enumerate(pred):
-    if each == 1:
-      pred[exampleno].append(keyword);
+  Y_dev = classifyers[i].predict(X_dev);
+  for exampleno,each in enumerate(Y_dev.tolist()): 
+  	if each>0 :
+  		pred[exampleno]+=' '+keyword; #space seperated tags
+  
 
+print zip(dev_target,pred)
+#print eval.fscore(dev_target,pred);
 
-import eval
-print eval.fscore(gold,pred);
-
-
-#batch-learning
-#from sklearn.naive_bayes import GaussianNB
 
