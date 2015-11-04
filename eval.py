@@ -15,10 +15,23 @@ def precision_recall(gold,pred):
 	return n//d1,n//d2;
 
 def precision_recall_per_class(gold, pred):
+    tp=0
+    fp=0
+    tn=0
+    fn=0
     for exampleno,each in enumerate(pred):
-        if each>0 :
-            pred[exampleno]+=' '+keyword; #space seperated tags
+        if each>0 and gold[exampleno]>0 :
+            tp+=1
+        elif each>0  and gold[exampleno]==0 :
+            fp+=1
+        elif  each==0  and gold[exampleno]==0 :
+            tn+=1
+        else:
+            fn+=1
 
+    print "precision is "+str(tp*1.0/(tp+fp))
+    print "recall is "+str(tp*1.0/(tp+fn))
+    print "accuracy is "+str((tp+tn)*1.0/(tp+fp+fn+tn))
 
 def Fscore(gold,predicted):
 	assert(len(gold) ==len(pred));
