@@ -14,6 +14,11 @@ def precision_recall(gold,pred):
 		d2+=len(x)
 	return n//d1,n//d2;
 
+def precision_recall_per_class(gold, pred):
+    for exampleno,each in enumerate(pred):
+        if each>0 :
+            pred[exampleno]+=' '+keyword; #space seperated tags
+
 
 def Fscore(gold,predicted):
 	assert(len(gold) ==len(pred));
