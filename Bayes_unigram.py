@@ -9,9 +9,10 @@ import load
 import eval
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
+from random import shuffle
 import numpy as np
 
-LOGISTIC_REGRESSION = True;
+LOGISTIC_REGRESSION = False;
 
 if LOGISTIC_REGRESSION:
   print 'LogisticRegression is Active';
@@ -33,7 +34,7 @@ classes = set(classes);
 print 'Total number of classes for this model ', len(classes)
 
 class_example_count = []
-for each in classes:
+for each in classes:  
   Y =[1 if each in x  else 0 for x in train_target ];
   class_example_count.append(sum(Y));
 assert(sum(class_example_count) == len(train_target))
@@ -42,27 +43,36 @@ print 'examples seen for each class during training ' ,class_example_count
 #Feature Model
 if not LOGISTIC_REGRESSION:
   bow = feature.feature("bow",train_samples);
-  X = bow.get_incremental_features(train_samples);
 else:
   bow_trimmed = feature.feature("bow_trimmed",train_samples);
-  X = bow_trimmed.get_incremental_features(train_samples);
-
-
-#for each in classes:
- #returns a copy
-# Ynew,Xnew = load.split_equally(each,X,train_target);
-# assert(Xnew.shape[0] ==  Ynew.shape[0])
-# assert(X.shape[0] == len(train_target))
-  #shuffle if necessary  
-# clf = MultinomialNB(fit_prior=False);# onlu MultinomialNB takes sparse matrix , to offset hughe neg samples
-# clf.fit(Xnew,Ynew);
-# classifyers.append(clf);
 
 #Classifier Model : Train
-for each in classes:
-  Y = np.array([1 if each in x  else 0 for x in train_target ]);  
-  assert(X.shape[0] ==  len(train_samples))
-  assert(Y.shape[0] == len(train_samples))
+for each in classes:  
+  #Balancing dataset
+  target_y = [1 if each in x  else 0 for x in train_target ];
+  target_y_positive = filter(lambda (x): x[0]==1, zip(target_y,train_samples))
+  target_y_negative = filter(lambda (x): x[0]==0, zip(target_y,train_samples))
+  print 'Training to tag %s from %d samples' %(each ,len(target_y_positive))
+  
+  target_y_negative = target_y_negative[:len(target_y_positive)];
+  shuffle(target_y_negative)
+  shuffle(target_y_positive)
+
+  target_y_positive,train_positive =zip(*target_y_positive);
+  target_y_positive,train_positive  = list(target_y_positive), list(train_positive)
+  target_y_negative,train_negative =zip(*target_y_negative);
+  target_y_negative,train_negative = list(target_y_negative), list(train_negative)
+  
+  train_positive.extend(train_negative); 
+  target_y_positive.extend(target_y_negative);
+  Y =np.array(target_y_positive);
+
+  if not LOGISTIC_REGRESSION:   
+   X = bow.get_incremental_features(train_positive);
+  else:  
+   X = bow_trimmed.get_incremental_features(train_positive);
+  assert(X.shape[0] ==  len(train_positive))
+  assert(Y.shape[0] == len(train_positive))
   if not LOGISTIC_REGRESSION:
     clf = MultinomialNB(fit_prior=False);# onlu MultinomialNB takes sparse matrix , to offset hughe neg samples
   else:
