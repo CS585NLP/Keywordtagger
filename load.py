@@ -1,5 +1,5 @@
 from SplitTest import fieldnames
-
+from random import shuffle
 #cleaned and well shuffled dataset
 #TRAIN_FILE = r'data/train/train_reduced_cleaned.csv'
 #DEV_FILE = r'data/dev/dev_reduced_cleaned.csv'
@@ -15,10 +15,10 @@ filename = {'TRAIN':TRAIN_FILE,'DEV':DEV_FILE,'TEST':TEST_FILE}
 
 x =open(TRAIN_FILE)
 y = open(TEST_FILE)
-z = open(DEV_FILE)
+#z = open(DEV_FILE)
 x.close();
 y.close();
-z.close();
+#z.close();
 
 import csv
 
@@ -47,17 +47,21 @@ def load_dataset(fname=filename['TRAIN'],numdocs=None):
 		
 import numpy as np
 #Binary classifier
-def split_equally(classname,X,train_target):
+def split_equally(target_label, samples):	
+	target_label_positive = filter(lambda (x): x[0]==1, zip(target_label,samples))
+	target_label_negative = filter(lambda (x): x[0]==0, zip(target_label,samples))
+  	
 
-	target_y = [1 if classname in x  else 0 for x in train_target ];
-	target_y_positive = filter(lambda (x): x[1]==1, enumerate(target_y))
-	target_y_negative = filter(lambda (x): x[1]==0, enumerate(target_y))
-	target_y_negative = target_y_negative[:len(target_y_positive)]
-	sampleno = [];
-	for ex,each in target_y_positive: sampleno.append(ex);
-	for ex,each in target_y_negative: sampleno.append(ex);
+	target_label_negative = target_label_negative[:len(target_label_positive)];
+	#shuffle(target_label_negative)
+	#shuffle(target_label_positive)
 
-	target_y = [1]*len(target_y_positive)
-	target_y.extend([0]*len(target_y_negative))
-	print X.toarray()[sampleno,:]
-	return [np.array(target_y), X.toarray()[sampleno,:]]
+	target_label_positive,train_positive =zip(*target_label_positive);
+	target_label_positive,train_positive  = list(target_label_positive), list(train_positive)
+	target_label_negative,train_negative =zip(*target_label_negative);
+	target_label_negative,train_negative = list(target_label_negative), list(train_negative)
+
+	train_positive.extend(train_negative); 
+	target_label_positive.extend(target_label_negative);
+	return target_label_positive,train_positive
+	  

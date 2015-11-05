@@ -1,3 +1,13 @@
+def cleanfile(fname):
+	f = open(fname,'w');
+	f.close();
+
+
+def writeintofile(x,fname):
+	f = open(fname,'a');
+	f.write(x+'\n')
+	f.close();
+
 #Evaluation metric
 def confused_examples(target,sample,gold,pred, number):
 	type1=[]
@@ -9,11 +19,12 @@ def confused_examples(target,sample,gold,pred, number):
 			type2.append(exno);
 		if(len(type2)>=3 and len(type1)>=3):
 			break;
-	print 'Examples are positive but classified incorrectly'
-	for each in type1: print sample[each]#+target[each]
-	print 'Examples are negative but classifyed incorrectly'
-	for each in type2: print sample[each]#+target[each]
-
+	x='';
+	x+='Examples are positive but classified incorrectly'
+	for each in type1: x += str(sample[each])+'\n'#+target[each]
+	x+='Examples are negative but classifyed incorrectly'+'\n'
+	for each in type2: x += str(sample[each])+'\n'#+target[each]
+	writeintofile(x,"confusion");
 
 def arrange(x):
 	y=[];

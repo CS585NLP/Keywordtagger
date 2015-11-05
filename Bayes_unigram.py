@@ -9,10 +9,18 @@ import load
 import eval
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from random import shuffle
+#from random import shuffle
 import numpy as np
+import sys
+from sklearn import cross_validation
 
-LOGISTIC_REGRESSION = False;
+eval.cleanfile("confusion")
+eval.cleanfile("measurement")
+
+LOGISTIC_REGRESSION=False
+if len(sys.argv)>1:
+  if('L' in sys.argv[1:]):
+    LOGISTIC_REGRESSION = True;
 
 if LOGISTIC_REGRESSION:
   print 'LogisticRegression is Active';
@@ -20,9 +28,8 @@ else:
   print 'NB is Active';
 
 print 'Begin Loading samples...'
-#load samples
 train_samples,train_target = load.load_dataset(fname=load.filename['TRAIN'],numdocs=None);
-dev_samples,dev_target = load.load_dataset(fname=load.filename['DEV'],numdocs=None);
+#dev_samples,dev_target = load.load_dataset(fname=load.filename['DEV'],numdocs=None);
 print 'number of training sample %d'  %len(train_target)
 print 'Tags for the last train example',train_target[-1]
 
@@ -46,78 +53,35 @@ if not LOGISTIC_REGRESSION:
 else:
   bow_trimmed = feature.feature("bow_trimmed",train_samples);
 
+metric = []; 
 #Classifier Model : Train
 for each in classes:  
   #Balancing dataset
   target_y = [1 if each in x  else 0 for x in train_target ];
-  target_y_positive = filter(lambda (x): x[0]==1, zip(target_y,train_samples))
-  target_y_negative = filter(lambda (x): x[0]==0, zip(target_y,train_samples))
-  print 'Training to tag %s from %d samples' %(each ,len(target_y_positive))
-  
-  target_y_negative = target_y_negative[:len(target_y_positive)];
-  shuffle(target_y_negative)
-  shuffle(target_y_positive)
-
-  target_y_positive,train_positive =zip(*target_y_positive);
-  target_y_positive,train_positive  = list(target_y_positive), list(train_positive)
-  target_y_negative,train_negative =zip(*target_y_negative);
-  target_y_negative,train_negative = list(target_y_negative), list(train_negative)
-  
-  train_positive.extend(train_negative); 
-  target_y_positive.extend(target_y_negative);
-  Y =np.array(target_y_positive);
+  [target_y_balanced, train_balanced]=load.split_equally(target_y,train_samples)
+  print 'Training to tag %s from %d samples' %(each ,len(target_y_balanced))
+  Y =np.array(target_y_balanced);
 
   if not LOGISTIC_REGRESSION:   
-   X = bow.get_incremental_features(train_positive);
+   X = bow.get_incremental_features(train_balanced);
   else:  
-   X = bow_trimmed.get_incremental_features(train_positive);
-  assert(X.shape[0] ==  len(train_positive))
-  assert(Y.shape[0] == len(train_positive))
+   X = bow_trimmed.get_incremental_features(train_balanced);
+  assert(X.shape[0] ==  len(train_balanced))
+  assert(Y.shape[0] == len(train_balanced))
   if not LOGISTIC_REGRESSION:
     clf = MultinomialNB(fit_prior=False);# onlu MultinomialNB takes sparse matrix , to offset hughe neg samples
   else:
     clf = LogisticRegression();
-  clf.fit(X,Y);
-  classifyers.append(clf);
-
-#Classifier Model: Test
-metric = [];
-if not LOGISTIC_REGRESSION:
-  X_dev = bow.get_incremental_features(dev_samples,Train=False);
-else:
-  X_dev = bow_trimmed.get_incremental_features(dev_samples,Train=False);
-
-print 'Testing for %d dev samples',len(dev_samples)
-for classifyerno,eachclassifier in enumerate(classes):
-  print 'Classifying %s',eachclassifier
-  Y_dev = classifyers[classifyerno].predict(X_dev);
-  gold = [ 1 if eachclassifier in x else 0 for x in dev_target]
-  pred = Y_dev.tolist()
-  [prec,rec,acc,tp,tn,fp,fn] = eval.precision_recall_per_class(gold,pred)
-  eval.confused_examples(dev_target,dev_samples,gold,pred,3)
-  metric.append((eachclassifier,prec,rec,acc,tp,tn,fp,fn))
+  #clf.fit(X,Y);
+  pred = cross_validation.cross_val_predict(clf, X , Y, cv=3);
+  [prec,rec,acc,tp,tn,fp,fn] = eval.precision_recall_per_class(Y.tolist(),pred)  
+  #classifyers.append(clf);  
+  eval.confused_examples(train_target,train_samples,Y.tolist(),pred,3)
+  metric.append((each,prec,rec,acc,tp,tn,fp,fn))
 
 metric = sorted(metric,key=lambda x: x[1])
+x=''
 for each in metric: 
-  print 'Class %s prec %f recall %f acc %f tp %d tn %d fp %d fn %d' %each;
-
-#print zip(dev_target,pred)
-#pred_tags = ['']*len(dev_samples)
-
-#for i,keyword in enumerate(classes):
-#  Y_dev = classifyers[i].predict(X_dev);
-#  for exampleno,each in enumerate(Y_dev.tolist()): 
-#  	if each>0 :
-#  		pred_tags[exampleno]+=' '+keyword; #space seperated tags
-  
-#pred_tags = [each.split(' ')for each in pred_tags]
-#print 'predicting precision recall for %d examples each class' %len(dev_target)
-#gold = [0]*len(dev_target);
-#pred = [0]*len(pred_tags);
-
-#for eachclass in classes:
-#  for sampleno,sample_tags in enumerate(dev_target): gold[sampleno] = 1 if eachclass in sample_tags else 0;
-#  for sampleno,eachpred_tags in enumerate(pred_tags): pred[sampleno] = 1 if eachclass in eachpred_tags else 0;  
-#  print zip(gold,pred)
-#  print 'Results for tag %s' %eachclass
-#  eval.precision_recall_per_class(gold,pred);
+  x += 'Class %s prec %f recall %f acc %f tp %d tn %d fp %d fn %d' %each;
+  x+='\n';
+eval.writeintofile(x,"measurement")
