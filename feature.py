@@ -11,10 +11,15 @@ def BOW_features(title,description):
 	for each in s:d[each.lower()]+=1
 	return d;
 
+def BOW_TRIM_features(title,description):
+	d= defaultdict(float);
+	for each in title.split(' '):d[each.lower()]=1
+	return d;
+
 class feature:
 	
 	def __init__(self, featurename,Train):
-		self.supportedfeatures = ['bow'];
+		self.supportedfeatures = ['bow','bow_trimmed'];
 		assert(featurename in self.supportedfeatures)
 		self.featurename = featurename.lower(); # ALL IN Lowercase
 		self.Train = Train;
@@ -23,7 +28,11 @@ class feature:
 		self.FEATURE_MODEL = None;
 		
 		if self.featurename == 'bow':				
+			print 'BOW representation is being used'
 			self.FEATURE_MODEL = BOW_features;
+		elif self.featurename == 'bow_trimmed':
+			print 'BOW_trimmed representation is being used'
+			self.FEATURE_MODEL = BOW_TRIM_features;
 		else:
 			assert(False);
 		self.init_feature_set();
