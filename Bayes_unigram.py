@@ -47,11 +47,12 @@ for each in classes:
 assert(sum(class_example_count) == len(train_target))
 print 'examples seen for each class during training ' ,class_example_count
 
+classes=['python']
 #Feature Model
 if not LOGISTIC_REGRESSION:
-  bow = feature.feature("bow",train_samples);
+    bow = feature.feature("bow",train_samples);
 else:
-  bow_trimmed = feature.feature("bow_trimmed",train_samples);
+    bow_trimmed = feature.feature("bow_bigram",train_samples);
 
 metric = []; 
 #Classifier Model : Train
@@ -76,7 +77,7 @@ for each in classes:
   pred = cross_validation.cross_val_predict(clf, X , Y, cv=3);
   [prec,rec,acc,tp,tn,fp,fn] = eval.precision_recall_per_class(Y.tolist(),pred)  
   #classifyers.append(clf);  
-  eval.confused_examples(train_target,train_samples,Y.tolist(),pred,3)
+  eval.confused_examples(train_target,train_balanced,Y.tolist(),pred,3)
   metric.append((each,prec,rec,acc,tp,tn,fp,fn))
 
 metric = sorted(metric,key=lambda x: x[1])
