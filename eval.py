@@ -1,3 +1,7 @@
+import load 
+import csv
+
+
 def cleanfile(fname):
 	f = open(fname,'w');
 	f.close();
@@ -9,7 +13,7 @@ def writeintofile(x,fname):
 	f.close();
 
 #Evaluation metric
-def confused_examples(target,sample,gold,pred, number):
+def confused_examples(classname,target,sample,gold,pred, number):
 	type1=[]
 	type2=[]
 	for exno,[x,y] in enumerate(zip(gold,pred)):
@@ -19,26 +23,12 @@ def confused_examples(target,sample,gold,pred, number):
 			type2.append(exno);
 		if(len(type2)>=3 and len(type1)>=3):
 			break;
-	x='';
-	x+='Examples are positive but classified incorrectly'
+	x='Confusion for class '+classname+'\n';
+	x+='Examples are positive but classified incorrectly\n'
 	for each in type1: x += str(sample[each])+'\n'#+target[each]
-	x+='Examples are negative but classifyed incorrectly'+'\n'
+	x+='Examples are negative but classifyed incorrectly\n'
 	for each in type2: x += str(sample[each])+'\n'#+target[each]
 	writeintofile(x,"confusion");
-
-def arrange(x):
-	y=[];
-	for each in x:
-		y.append(set(each));
-	return y;
-
-def precision_recall(gold,pred):
-	n,d1,d2=[0.0]*3;
-	for x,y in zip(gold,pred):
-		n+=len(x.intersection(y))
-		d1+= len(y);
-		d2+=len(x)
-	return n//d1,n//d2;
 
 def precision_recall_per_class(gold, pred):
 	tp,fp,fn,tn = [0.0]*4;
@@ -78,4 +68,70 @@ def Fscore(gold,predicted):
 	return (2*p*r)/p+r 
 
 
+#evaluate 
+def evaluate(models,classes):
+	models, fname = zip(*models);
+	fname=fname[0]
 
+	print 'Loading Test dataset...'
+	dev_samples,gold = load.load_dataset(fname=load.filename['DEV'],numdocs=100);
+	[tp,fp,fn,tn] = [0.0,0.0,0.0,0.0]
+	keyword_stats=[]
+	confusion=[]
+	for each in models:
+		confusion.append({e:[[],[]] for e in classes})
+		keyword_stats.append({e:[0.0,0.0,len(dev_samples)*1.0,0.0] for e in classes});
+		print 'Evaluation Cache for %s is not present' %fname
+		pred = each.classify(dev_samples); #a sorted vector of strings
+		assert(len(pred) ==len(dev_samples));		
+		for no,each in enumerate(pred):
+			print '\rVerifying output for example %d' %no,
+			assert(type(each) == list);
+			p=set(each)&classes; 
+			q=set(gold[no])&classes;
+			r = p&q;
+			tp += len(p&q);
+			tn += len(classes)-len(p|q);
+			fp += len(p)-len(p&q)
+			fn += len(q)-len(p&q)		
+
+
+			for every in r: keyword_stats[-1][every][0]+=1; #tp
+			for every in p-r: keyword_stats[-1][every][1]+=1; #fp
+			for every in p|q: keyword_stats[-1][every][2]-=1; #tn
+			for every in q-r: keyword_stats[-1][every][3]+=1; #fn
+
+			#for every in r: confusion[-1][every][0].append(exampleno); #tp
+			for every in p-r: confusion[-1][every][0].append(no); #fp
+			#for every in p|q: keyword_stats[-1][every][2].append(exampleno); #tn
+			for every in q-r: confusion[-1][every][1].append(no); #fn
+
+		#write into file	
+		#print keyword_stats[-1]
+		#print [tp,tn,fp,fn]
+
+		with open(fname, 'wb') as csvfile:
+			writer = csv.DictWriter(csvfile, fieldnames=list(classes))	     
+			writer.writeheader()
+			for each in keyword_stats:
+				writer.writerow(each)
+    	prec,rec = tp/(tp+fp+0.01),tp/(tp+fn+0.01)
+    	#print prec,rec
+    	print '\n'
+    	print '[tp,fp,tn,fn]',keyword_stats[-1]
+    	print '------tp------tn------fp------fn------pr-------re------f1------'
+    	print '----------------------------Model %s--------------------------' %fname
+    	print '------%d------%d------%d------%d------%.2f------%.2f------%.2f------' %(tp,tn,fp,fn,prec,rec,2*prec*rec/(prec+rec+0.01))
+    	print confusion[-1]
+    	for each in confusion[-1]:
+    		print 'confusion in %s' %each    		
+    		for no in confusion[-1][each]:     			
+    			for examp in  no[:3]:
+    				print examp
+    				print dev_samples[examp],gold[examp]
+    		print '---------------------------------'
+
+
+
+cleanfile("confusion")
+cleanfile("measurement")
