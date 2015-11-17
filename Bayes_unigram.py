@@ -44,7 +44,9 @@ class_example_count = []
 for each in classes:  
   Y =[1 if each in x  else 0 for x in train_target ];
   class_example_count.append(sum(Y));
-assert(sum(class_example_count) == len(train_target))
+#print class_example_count
+#print len(train_target)
+#assert(sum(class_example_count) == len(train_target))
 print 'examples seen for each class during training ' ,class_example_count
 
 classes=['python']
