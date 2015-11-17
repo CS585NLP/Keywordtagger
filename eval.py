@@ -122,14 +122,15 @@ def evaluate(models,classes):
     	print '------tp------tn------fp------fn------pr-------re------f1------'
     	print '----------------------------Model %s--------------------------' %fname
     	print '------%d------%d------%d------%d------%.2f------%.2f------%.2f------' %(tp,tn,fp,fn,prec,rec,2*prec*rec/(prec+rec+0.01))
-    	print confusion[-1]
+    	x= '%s \n' %confusion[-1]
     	for each in confusion[-1]:
-    		print 'confusion in %s' %each    		
+    		x+= 'confusion in %s \n' %each    		
     		for no in confusion[-1][each]:     			
     			for examp in  no[:3]:
-    				print examp
-    				print dev_samples[examp],gold[examp]
-    		print '---------------------------------'
+    				x+= '%s \n' %examp
+    				x+= '%s %s\n' %(dev_samples[examp],gold[examp])
+    		x+= '---------------------------------\n'
+		writeintofile(x,"confusion")
 
 
 
