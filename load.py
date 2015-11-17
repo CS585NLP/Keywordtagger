@@ -21,6 +21,7 @@ y.close();
 #z.close();
 
 import csv
+from collections import defaultdict
 
 
 def load_dataset(fname=filename['TRAIN'],numdocs=None):
@@ -36,12 +37,13 @@ def load_dataset(fname=filename['TRAIN'],numdocs=None):
 
 	with open(fname) as csvfile:
 		KeywordTagger = csv.DictReader(csvfile);
-		for no,row in enumerate(KeywordTagger):		
+		for no,row1 in enumerate(KeywordTagger):		
 			if (numdocs !=None):
 				if(no>=numdocs): 
 					break;
-			examples.append([row[fieldnames[0]],row[fieldnames[1]],row[fieldnames[2]]]);
-			tags.append(row[fieldnames[3]].split(' ')); #tags are space seperated	
+			row = defaultdict(lambda : '', row1);
+			examples.append([row[fieldnames[0]],row[fieldnames[1]],row[fieldnames[2]],row[fieldnames[3]]]);
+			tags.append(row[fieldnames[4]].split(' ')); #tags are space seperated	
 			
 	return examples,tags
 		
