@@ -4,25 +4,25 @@ from collections  import defaultdict
 
 
 #Simple feature
-def BOW_features(title,description):
+def BOW_features(title,description,code):
 	sentence = title+description;
 	s = sentence.split(' ');
 	d= defaultdict(float);
 	for each in s:d[each.lower()]+=1
 	return d;
 
-def BOW_TRIM_features(title,description):
+def BOW_TRIM_features(title,description,code):
 	d= defaultdict(float);
 	for each in title.split(' '):d[each.lower()]=1
 	return d;
 
-def BOW_features_title_body(title,description):
+def BOW_features_title_body(title,description,code):
     d= defaultdict(float);
     for each in title.split(' '):d[each.lower()+"title"]+=1
     for each in description.split(' '):d[each.lower()+"body"]+=1
     return d;
 
-def BOW_features_title_body_bigram(title,description):
+def BOW_features_title_body_bigram(title,description,code):
     d= defaultdict(float);
     for each in title.split(' '):d[each.lower()+"title"]+=1
     desc = description.split(' ')
@@ -61,9 +61,10 @@ class feature:
 
 
     def init_feature_set(self):
+		print self.Train[0]       
 		
 		for each in self.Train:
-			for each_activation in self.FEATURE_MODEL(each[1],each[2]): self.feature_list[each_activation] = 0;
+			for each_activation in self.FEATURE_MODEL(each[1],each[2],each[3]): self.feature_list[each_activation] = 0;
 		for pos,each_activation in enumerate(self.feature_list): self.feature_list[each_activation] = pos;
 
 
@@ -86,7 +87,7 @@ class feature:
             feature_data=[]
             feature_data_location=[];
         
-            featactivation = self.FEATURE_MODEL(each[1],each[2]);
+            featactivation = self.FEATURE_MODEL(each[1],each[2],each[3]);
             for each_activation in featactivation:
                 assert(featactivation[each_activation] != 0);
                 try:
