@@ -19,9 +19,10 @@ import numpy as np
 import sys
 from sklearn import cross_validation
 
+
+
 eval.cleanfile("confusion")
 eval.cleanfile("measurement")
-
 
 class search_classify():
 	
@@ -48,14 +49,13 @@ class search_classify():
 			classes = self.keyword_detection_list;
 
 		print 'Total number of classes for this model ', len(classes)
-
 		class_example_count = []
 		for each in classes:
 		  Y =[1 if each in x  else 0 for x in train_target ];
 		  class_example_count.append(sum(Y));		
 		print 'examples seen for each class during training ' ,class_example_count
 
-		self.bow = feature.feature(self.featurename,train_samples);
+		self.bow = feature.feature(self.featurename,train_samples,keywords=self.keyword_detection_list);
 		metric = []; 
 		#Classifier Model : Train
 		for each in classes:  
@@ -146,6 +146,7 @@ if __name__ == '__main__':
 			c[everytag]+=1;
 	
 	y = filter(lambda x: c[x]>=500.0 ,c.keys());
+#y=['java']
 	print y
 	
 	M1 = search_classify(True,y,'bow_bigram');
