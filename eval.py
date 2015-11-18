@@ -74,7 +74,7 @@ def evaluate(models,classes):
 	fname=fname[0]
 
 	print 'Loading Test dataset...'
-	dev_samples,gold = load.load_dataset(fname=load.filename['DEV'],numdocs=100);
+	dev_samples,gold = load.load_dataset(fname=load.filename['DEV'],numdocs=None);
 	[tp,fp,fn,tn] = [0.0,0.0,0.0,0.0]
 	keyword_stats=[]
 	confusion=[]
