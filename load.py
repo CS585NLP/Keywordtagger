@@ -65,5 +65,12 @@ def split_equally(target_label, samples):
 
 	train_positive.extend(train_negative); 
 	target_label_positive.extend(target_label_negative);
+	d = zip(target_label_positive,train_positive);
+	shuffle(d)
+	[target_label_positive, train_positive] = zip(*d);
+	target_label_positive = list(target_label_positive)
+	train_positive = list(train_positive)
+	del d;
+
 	return target_label_positive,train_positive
 	  
