@@ -33,12 +33,24 @@ def BOW_features_title_body_bigram(title,description,code):
 
 
 class feature:
+    def BOW_keyword_only(self,title,description,code):
+        
+        d= defaultdict(float);
+        for each in description.split(' '):
+            if each.lower() in self.keywords :
+                d[each.lower()]+=1;
+        for each in title.split(' '):
+            if each.lower() in self.keywords:
+                d[each.lower()]+=1;
+        return d;
 	
-    def __init__(self, featurename,Train):
-        self.supportedfeatures = ['bow','bow_trimmed','bow_separate','bow_bigram'];
+    def __init__(self, featurename,Train,keywords=None):
+        self.supportedfeatures = ['bow','bow_trimmed','bow_separate','bow_bigram','bow_keyword_only'];
         assert(featurename in self.supportedfeatures)
         self.featurename = featurename.lower(); # ALL IN Lowercase
         self.Train = Train;
+        self.keywords = keywords;
+        print keywords
         #self.test = test;
         self.feature_list = {};
         self.FEATURE_MODEL = None;
@@ -55,6 +67,8 @@ class feature:
         elif self.featurename == 'bow_bigram':
             print 'BOW_bigram representation is being used'
             self.FEATURE_MODEL = BOW_features_title_body_bigram;
+        elif self.featurename == 'bow_keyword_only':
+            self.FEATURE_MODEL = self.BOW_keyword_only;
         else:
 			assert(False);
         self.init_feature_set();
