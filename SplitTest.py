@@ -16,7 +16,7 @@ TEST_DIR = os.path.join(PATH_TO_DATA, "test")
 DEV_DIR = os.path.join(PATH_TO_DATA, "dev")
 
 #FILE = os.path.join(PATH_TO_DATA,"small_train.csv");
-FILE = os.path.join(PATH_TO_DATA,"cleaned_100.csv");
+FILE = os.path.join(PATH_TO_DATA,"cleaned_100_removednull.csv");
 #FILE = os.path.join(PATH_TO_DATA,"hand_made_dataset_train.csv");
 
 def write_to_file(samples,fname):
