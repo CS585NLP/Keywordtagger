@@ -23,17 +23,17 @@ class Cleaner:
         return [text, code]
     
     #return self.removeShortWords(self.removeStopWords((self.removeUrl(self.standardize(self.splitAttachedWords(self.removePunc((self.correctAppostophe(self.decode(self.unescape(self.replaceSlangs(text)))))))))).lower()))
-        
+    
     def removeShortWords(self,text):
         return ' '.join(word for word in text.split() if len(word)>=3)
-        
+    
     def unescape(self,text):
         return self.html_parser.unescape(text)
-        
+    
     def decode(self,text):
         return text.decode('utf8').encode('ascii','ignore')
     def remove_code(self,text):
-
+        
         soup = BeautifulSoup(text, 'html.parser')
         code_instances =  soup.find_all('code')
         code = ""
@@ -45,7 +45,7 @@ class Cleaner:
         code = code.replace('</code>',' ')
         code = code.replace(',',' ')
         return [text, code]
-
+    
     def correctAppostophe(self,text):
         t=text
         for appostophe in self.APPOSTOPHES:
@@ -56,10 +56,10 @@ class Cleaner:
     def removeStopWords(self,text_list):
         text = text_list[0]
         code = text_list[1]
-
+        
         words=text.split()
         return [' '.join(word for word in words if word.lower() not in self.stopwords), code]
-
+    
     def detachPunc(self,text):
         ch='<'
         if ch in text:
@@ -68,7 +68,7 @@ class Cleaner:
         if ch in text:
             text = text.replace(ch,ch+' ')
         return text
-
+    
     def removePunc(self,text_list):
         text = text_list[0]
         code = text_list[1]
@@ -95,7 +95,7 @@ class Cleaner:
         return ' '.join(l)
     
     def standardize(self,text):
-        return ''.join(''.join(s)[:2] for _, s in itertools.groupby(text))   
+        return ''.join(''.join(s)[:2] for _, s in itertools.groupby(text))
     
     def removeUrl(self,text_list):
         text = text_list[0]
