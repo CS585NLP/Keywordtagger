@@ -14,7 +14,7 @@ class Cleaner:
             sp=line.strip().split("-")
             self.slangs[sp[0]]=sp[1]
         self.stopwords = set(stopwords.words('english'))
-        self.punc = set(string.punctuation)
+        self.punc = set(string.punctuation).difference(set(['+']))
     
     def clean(self,text):
         list = self.removeStopWords(self.removeUrl(self.removePunc(self.remove_code(self.detachPunc(self.standardize(((self.correctAppostophe(((self.replaceSlangs(text))))))))))))
