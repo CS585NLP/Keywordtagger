@@ -4,34 +4,37 @@ from collections  import defaultdict
 
 
 #Simple feature
-def BOW_features(title,description,code):
+def BOW_features(example_no, title,description,code):
 	sentence = title+description;
 	s = sentence.split(' ');
 	d= defaultdict(float);
 	for each in s:d[each.lower()]+=1
 	return d;
 
-def BOW_TRIM_features(title,description,code):
+def BOW_TRIM_features(example_no, title,description,code):
 	d= defaultdict(float);
 	for each in title.split(' '):d[each.lower()]=1
 	return d;
 
-def BOW_features_title_body(title,description,code):
+def BOW_features_title_body(example_no, title,description,code):
     d= defaultdict(float);
     for each in title.split(' '):d[each.lower()+"title"]+=1
     for each in description.split(' '):d[each.lower()+"body"]+=1
     return d;
 
-def BOW_features_title_body_bigram(title,description,code):
+def BOW_features_title_body_bigram(example_no, title,description,code):
     d= defaultdict(float);
     for each in title.split(' '):d[each.lower()+"title"]+=1
     desc = description.split(' ')
     for each in desc:d[each.lower()+"body"]+=1
     for i in range(len(desc)-1):
         d[desc[i]+"_"+desc[i+1]]+=1
+    print example_no
+
+
     return d;
 
-def BOW_features_bigram_rules(title,description,code):
+def BOW_features_bigram_rules(example_no, title,description,code):
     d= defaultdict(float);
     for each in title.split(' '):d[each.lower()+"title"]+=1
     desc = description.split(' ')
@@ -46,6 +49,31 @@ def BOW_features_bigram_rules(title,description,code):
 
     return d;
 
+def BOW_LDA(example_no, title,description,code):
+    d= defaultdict(float);
+    for each in title.split(' '):d[each.lower()+"title"]+=1
+    desc = description.split(' ')
+    for each in desc:d[each.lower()+"body"]+=1
+    for i in range(len(desc)-1):
+        d[desc[i]+"_"+desc[i+1]]+=1
+    
+    lda = []
+    with open('lda.csv', 'r') as ldafile:
+        for row in ldafile:
+            row = row.strip()
+            lda.append(row.split('), ('))
+
+    row  = lda[example_no]
+    for i in row:
+        i = i.replace('(','')
+        i=i.replace(')','')
+        i=i.replace('[','')
+        i=i.replace(']','')
+        i =  i.split(',')
+        d["topic"+i[0]] = float(i[1])
+
+    
+    return d;
 
 class feature:
     def BOW_keyword_only(self,title,description,code):
@@ -60,7 +88,7 @@ class feature:
         return d;
 	
     def __init__(self, featurename,Train,keywords=None):
-        self.supportedfeatures = ['bow','bow_trimmed','bow_separate','bow_bigram','bow_keyword_only','bow_rules'];
+        self.supportedfeatures = ['bow','bow_trimmed','bow_separate','bow_bigram','bow_keyword_only','bow_rules','bow_lda'];
         assert(featurename in self.supportedfeatures)
         self.featurename = featurename.lower(); # ALL IN Lowercase
         self.Train = Train;
@@ -87,21 +115,26 @@ class feature:
             self.FEATURE_MODEL = BOW_features_bigram_rules;
         elif self.featurename == 'bow_keyword_only':
             self.FEATURE_MODEL = self.BOW_keyword_only;
+        elif self.featurename == 'bow_lda':
+            self.FEATURE_MODEL = self.BOW_LDA;
         else:
 			assert(False);
         self.init_feature_set();
 
 
     def init_feature_set(self):
-		print self.Train[0]       
-		
-		for each in self.Train:
-			for each_activation in self.FEATURE_MODEL(each[1],each[2],each[3]): self.feature_list[each_activation] = 0;
-		for pos,each_activation in enumerate(self.feature_list): self.feature_list[each_activation] = pos;
+        print self.Train[0]
+        doc_no=0
+        for each in self.Train:
+            for each_activation in self.FEATURE_MODEL(doc_no,each[1],each[2],each[3]):
+                self.feature_list[each_activation] = 0;
+            doc_no += 1
+        for pos,each_activation in enumerate(self.feature_list):
+            self.feature_list[each_activation] = pos;
 
 
-		print "The number of features according to %s feature Model is %d" %(self.featurename,len(self.feature_list));
-		return;
+        print "The number of features according to %s feature Model is %d" %(self.featurename,len(self.feature_list));
+        return;
 
 
 	#for mini batch
@@ -113,13 +146,14 @@ class feature:
         assert(self.FEATURE_MODEL !=None);
 
         X = sps.coo_matrix((len(examples), len(self.feature_list)))
-
+        doc_no=0
         for exampleno,each in enumerate(examples):
             type(each[1]==str and type(each[2])== str);
             feature_data=[]
             feature_data_location=[];
         
-            featactivation = self.FEATURE_MODEL(each[1],each[2],each[3]);
+            featactivation = self.FEATURE_MODEL(doc_no, each[1],each[2],each[3]);
+            doc_no+=1
             for each_activation in featactivation:
                 assert(featactivation[each_activation] != 0);
                 try:
