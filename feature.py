@@ -41,11 +41,18 @@ def BOW_features_bigram_rules(example_no, title,description,code):
     for each in desc:d[each.lower()+"body"]+=1
     for i in range(len(desc)-1):
         d[desc[i]+"_"+desc[i+1]]+=1
+    code = code.lower()
     if("#include" in code):
         d["c"]=1
-    if("def" in code):
+    elif("def" in code):
         d["python"]=1
+    if(("public" in code) or ("import" in code) or ("class" in code)):
+        d["Java"]=1
 
+    if("&lt" in code):
+        d["CSS"]=1
+    if ("select" in code):
+        d["sql" = 1]
 
     return d;
 
